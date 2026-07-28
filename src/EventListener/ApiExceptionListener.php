@@ -56,12 +56,7 @@ final class ApiExceptionListener
                 Response::HTTP_CONFLICT,
                 $exception->getMessage(),
             ),
-            $exception instanceof HttpExceptionInterface => $this->problem(
-                Response::HTTP_NOT_FOUND === $exception->getStatusCode() ? '/errors/not-found' : '/errors/http',
-                Response::$statusTexts[$exception->getStatusCode()] ?? 'Błąd',
-                $exception->getStatusCode(),
-                Response::HTTP_NOT_FOUND === $exception->getStatusCode() ? 'Żądany zasób nie istnieje.' : $exception->getMessage(),
-            ),
+            $exception instanceof HttpExceptionInterface => $this->httpProblem($exception),
             default => $this->problem(
                 '/errors/server-error',
                 'Błąd serwera',
@@ -69,6 +64,26 @@ final class ApiExceptionListener
                 'Wystąpił nieoczekiwany błąd.',
             ),
         };
+    }
+
+    private function httpProblem(HttpExceptionInterface $exception): JsonResponse
+    {
+        $status = $exception->getStatusCode();
+        $isNotFound = Response::HTTP_NOT_FOUND === $status;
+
+        return $this->problem(
+            $isNotFound ? '/errors/not-found' : '/errors/http',
+            // Response::$statusTexts zawiera angielskie frazy Symfony — API mówi po polsku.
+            match ($status) {
+                Response::HTTP_BAD_REQUEST => 'Nieprawidłowe żądanie',
+                Response::HTTP_NOT_FOUND => 'Nie znaleziono zasobu',
+                Response::HTTP_METHOD_NOT_ALLOWED => 'Niedozwolona metoda HTTP',
+                Response::HTTP_UNSUPPORTED_MEDIA_TYPE => 'Nieobsługiwany format danych',
+                default => $status >= 500 ? 'Błąd serwera' : 'Błąd żądania',
+            },
+            $status,
+            $isNotFound ? 'Żądany zasób nie istnieje.' : $exception->getMessage(),
+        );
     }
 
     private function findValidationFailure(\Throwable $exception): ?ValidationFailedException

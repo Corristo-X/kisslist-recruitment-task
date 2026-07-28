@@ -74,13 +74,34 @@ final class ApiExceptionListenerTest extends TestCase
 
         (new ApiExceptionListener())($event);
 
-        self::assertSame(404, $event->getResponse()?->getStatusCode());
+        $response = $event->getResponse();
+        self::assertSame(404, $response?->getStatusCode());
+        self::assertSame('application/problem+json', $response?->headers->get('Content-Type'));
+
+        $payload = json_decode((string) $response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
+        self::assertSame('/errors/not-found', $payload['type']);
+        self::assertSame('Nie znaleziono zasobu', $payload['title']);
+    }
+
+    public function testMapsMethodNotAllowedTo405WithPolishTitle(): void
+    {
+        $event = $this->eventFor(new MethodNotAllowedHttpException(['GET'], 'Method Not Allowed'));
+
+        (new ApiExceptionListener())($event);
+
+        $response = $event->getResponse();
+        self::assertSame(405, $response?->getStatusCode());
+        self::assertSame('application/problem+json', $response?->headers->get('Content-Type'));
+
+        $payload = json_decode((string) $response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
+        self::assertSame('/errors/http', $payload['type']);
+        self::assertSame('Niedozwolona metoda HTTP', $payload['title']);
     }
 
     public function testIgnoresRequestsOutsideApiPrefix(): void
     {
         $event = new ExceptionEvent(
-            $this->createMock(HttpKernelInterface::class),
+            $this->createStub(HttpKernelInterface::class),
             Request::create('/nie-api'),
             HttpKernelInterface::MAIN_REQUEST,
             new NotFoundHttpException('No route found'),
@@ -94,7 +115,7 @@ final class ApiExceptionListenerTest extends TestCase
     private function eventFor(\Throwable $exception): ExceptionEvent
     {
         return new ExceptionEvent(
-            $this->createMock(HttpKernelInterface::class),
+            $this->createStub(HttpKernelInterface::class),
             Request::create('/api/books/123456'),
             HttpKernelInterface::MAIN_REQUEST,
             $exception,
