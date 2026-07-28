@@ -1,0 +1,7 @@
+.git
+docs
+var
+vendor
+tests
+.github
+*.pdf
