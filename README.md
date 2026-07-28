@@ -5,8 +5,11 @@
 REST API do śledzenia i aktualizowania stanu książek posiadanych przez bibliotekę:
 dodawanie, usuwanie, listowanie oraz wypożyczanie i przyjmowanie zwrotów.
 
-- **Demo:** <LINK>
-- **Dokumentacja interaktywna:** `<LINK>/api/doc`
+- **Demo:** https://kisslist-api.onrender.com
+- **Dokumentacja interaktywna:** `https://kisslist-api.onrender.com/api/doc`
+
+Instancja demo działa na darmowym planie Render i usypia przy braku ruchu —
+pierwsze żądanie po przerwie może potrwać kilkadziesiąt sekund.
 
 ## Uruchomienie
 
