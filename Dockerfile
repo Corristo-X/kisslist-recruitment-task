@@ -28,5 +28,7 @@ RUN composer install --no-dev --no-scripts --no-interaction --prefer-dist --opti
 COPY . .
 RUN composer dump-autoload --no-dev --optimize --classmap-authoritative \
  && php bin/console cache:warmup
+RUN chmod +x docker/entrypoint.sh
 
+ENTRYPOINT ["/app/docker/entrypoint.sh"]
 CMD ["frankenphp", "run", "--config", "/app/docker/Caddyfile"]
