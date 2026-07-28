@@ -18,8 +18,9 @@ docker compose up
 
 API nasłuchuje na `http://localhost:8080`. Migracje uruchamiają się automatycznie
 przy starcie kontenera. Dane przykładowe (5 książek, w tym jedna wypożyczona)
-ładują się razem z nimi, ale tylko wtedy, gdy tabela `book` jest pusta — restart
-kontenera nie duplikuje rekordów ani nie nadpisuje danych wprowadzonych przez API.
+ładują się razem z nimi, gdy zmienna środowiskowa `LOAD_FIXTURES=1`, ale tylko
+wtedy, gdy tabela `book` jest pusta — restart kontenera nie duplikuje rekordów
+ani nie nadpisuje danych wprowadzonych przez API.
 
 ## Stack
 
