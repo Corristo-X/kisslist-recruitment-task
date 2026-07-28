@@ -10,6 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: LoanRepository::class)]
 #[ORM\Table(name: 'loan')]
+#[ORM\UniqueConstraint(name: 'loan_one_active_per_book', columns: ['book_id'], options: ['where' => '(returned_at IS NULL)'])]
 class Loan
 {
     #[ORM\Id]
