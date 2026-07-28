@@ -1,0 +1,13 @@
+services:
+    # Kontener testowy nie sięgnie po prywatną usługę, którą nic jeszcze nie
+    # konsumuje — Symfony usuwa ją z kontenera jako nieużywaną. Kontrolery z
+    # zadań 6-7 zaczną wstrzykiwać LibraryService i ten wpis stanie się zbędny.
+    #
+    # Ta definicja w całości ZASTĘPUJE tę z App\: resource w services.yaml —
+    # Symfony nie scala usług o tym samym ID między plikami, więc autowire
+    # i autoconfigure trzeba powtórzyć jawnie, inaczej konstruktor dostanie
+    # zero argumentów.
+    App\Service\LibraryService:
+        public: true
+        autowire: true
+        autoconfigure: true
