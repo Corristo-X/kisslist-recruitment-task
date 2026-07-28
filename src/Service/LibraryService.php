@@ -85,8 +85,9 @@ final readonly class LibraryService
         try {
             $this->entityManager->flush();
         } catch (UniqueConstraintViolationException) {
-            // Partial unique index złapał wyścig dwóch równoległych wypożyczeń.
-            throw BookAlreadyBorrowedException::forBook($serialNumber, $cardNumber, $this->clock->now());
+            // Partial unique index złapał wyścig dwóch równoległych wypożyczeń — to żądanie
+            // przegrało, więc nie znamy karty ani czasu zwycięzcy i nie udajemy, że znamy.
+            throw BookAlreadyBorrowedException::raceLost($serialNumber);
         }
 
         return $book;

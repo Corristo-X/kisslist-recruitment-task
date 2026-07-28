@@ -23,4 +23,17 @@ final class BookAlreadyBorrowedException extends DomainException
             $serialNumber,
         ));
     }
+
+    /**
+     * Przegrana strona wyścigu o partial unique index: w chwili konfliktu nie wiemy
+     * jeszcze, na czyją kartę i o której trafiło zwycięskie żądanie, więc komunikat
+     * nie może twierdzić czegoś, czego nie jesteśmy w stanie potwierdzić.
+     */
+    public static function raceLost(string $serialNumber): self
+    {
+        return new self(sprintf(
+            'Książka %s została w tym samym momencie wypożyczona przez inne żądanie.',
+            $serialNumber,
+        ));
+    }
 }
