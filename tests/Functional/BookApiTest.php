@@ -81,6 +81,7 @@ final class BookApiTest extends ApiTestCase
 
         self::assertResponseStatusCodeSame(404);
         self::assertSame('/errors/not-found', $this->payload()['type']);
+        self::assertSame('Książka o numerze seryjnym 000000 nie istnieje.', $this->payload()['detail']);
     }
 
     public function testReturns404ForMalformedSerialNumber(): void
@@ -89,6 +90,9 @@ final class BookApiTest extends ApiTestCase
 
         self::assertResponseStatusCodeSame(404);
         self::assertSame('application/problem+json', $this->client->getResponse()->headers->get('Content-Type'));
+        // Bez wymogu \d{6} w trasie to żądanie i tak dostałoby 404 — ale przez
+        // BookNotFoundException, a nie przez routing. "detail" odróżnia oba przypadki.
+        self::assertSame('Żądany zasób nie istnieje.', $this->payload()['detail']);
     }
 
     public function testDeletesBook(): void
