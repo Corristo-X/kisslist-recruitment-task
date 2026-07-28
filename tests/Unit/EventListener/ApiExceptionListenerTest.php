@@ -8,6 +8,7 @@ use App\EventListener\ApiExceptionListener;
 use App\Exception\BookAlreadyBorrowedException;
 use App\Exception\BookNotFoundException;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
@@ -24,7 +25,7 @@ final class ApiExceptionListenerTest extends TestCase
     {
         $event = $this->eventFor(BookNotFoundException::withSerialNumber('123456'));
 
-        (new ApiExceptionListener())($event);
+        (new ApiExceptionListener($this->createStub(LoggerInterface::class)))($event);
 
         $response = $event->getResponse();
         self::assertNotNull($response);
@@ -41,7 +42,7 @@ final class ApiExceptionListenerTest extends TestCase
     {
         $event = $this->eventFor(BookAlreadyBorrowedException::cannotDelete('123456'));
 
-        (new ApiExceptionListener())($event);
+        (new ApiExceptionListener($this->createStub(LoggerInterface::class)))($event);
 
         self::assertSame(409, $event->getResponse()?->getStatusCode());
     }
@@ -58,7 +59,7 @@ final class ApiExceptionListenerTest extends TestCase
 
         $event = $this->eventFor($exception);
 
-        (new ApiExceptionListener())($event);
+        (new ApiExceptionListener($this->createStub(LoggerInterface::class)))($event);
 
         $response = $event->getResponse();
         self::assertSame(422, $response?->getStatusCode());
@@ -72,7 +73,7 @@ final class ApiExceptionListenerTest extends TestCase
     {
         $event = $this->eventFor(new NotFoundHttpException('No route found'));
 
-        (new ApiExceptionListener())($event);
+        (new ApiExceptionListener($this->createStub(LoggerInterface::class)))($event);
 
         $response = $event->getResponse();
         self::assertSame(404, $response?->getStatusCode());
@@ -87,7 +88,7 @@ final class ApiExceptionListenerTest extends TestCase
     {
         $event = $this->eventFor(new MethodNotAllowedHttpException(['GET'], 'Method Not Allowed'));
 
-        (new ApiExceptionListener())($event);
+        (new ApiExceptionListener($this->createStub(LoggerInterface::class)))($event);
 
         $response = $event->getResponse();
         self::assertSame(405, $response?->getStatusCode());
@@ -96,6 +97,44 @@ final class ApiExceptionListenerTest extends TestCase
         $payload = json_decode((string) $response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
         self::assertSame('/errors/http', $payload['type']);
         self::assertSame('Niedozwolona metoda HTTP', $payload['title']);
+    }
+
+    public function testLogsUnexpectedExceptionAndReturnsUnchanged500(): void
+    {
+        $exception = new \RuntimeException('coś poszło nie tak');
+        $event = $this->eventFor($exception);
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())
+            ->method('error')
+            ->with(
+                self::anything(),
+                self::callback(static fn (array $context): bool => ($context['exception'] ?? null) === $exception),
+            );
+
+        (new ApiExceptionListener($logger))($event);
+
+        $response = $event->getResponse();
+        self::assertSame(500, $response?->getStatusCode());
+        self::assertSame('application/problem+json', $response->headers->get('Content-Type'));
+
+        $payload = json_decode((string) $response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
+        self::assertSame('/errors/server-error', $payload['type']);
+        self::assertSame('Błąd serwera', $payload['title']);
+        self::assertSame(500, $payload['status']);
+        self::assertSame('Wystąpił nieoczekiwany błąd.', $payload['detail']);
+    }
+
+    public function testDoesNotLogDomainNotFoundException(): void
+    {
+        $event = $this->eventFor(BookNotFoundException::withSerialNumber('123456'));
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::never())->method(self::anything());
+
+        (new ApiExceptionListener($logger))($event);
+
+        self::assertSame(404, $event->getResponse()?->getStatusCode());
     }
 
     public function testIgnoresRequestsOutsideApiPrefix(): void
@@ -107,7 +146,7 @@ final class ApiExceptionListenerTest extends TestCase
             new NotFoundHttpException('No route found'),
         );
 
-        (new ApiExceptionListener())($event);
+        (new ApiExceptionListener($this->createStub(LoggerInterface::class)))($event);
 
         self::assertNull($event->getResponse());
     }

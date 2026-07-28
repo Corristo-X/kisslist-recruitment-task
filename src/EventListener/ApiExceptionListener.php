@@ -8,6 +8,7 @@ use App\Exception\BookAlreadyBorrowedException;
 use App\Exception\BookNotBorrowedException;
 use App\Exception\BookNotFoundException;
 use App\Exception\DuplicateSerialNumberException;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,6 +20,10 @@ use Symfony\Component\Validator\Exception\ValidationFailedException;
 #[AsEventListener(event: KernelEvents::EXCEPTION)]
 final class ApiExceptionListener
 {
+    public function __construct(private readonly LoggerInterface $logger)
+    {
+    }
+
     public function __invoke(ExceptionEvent $event): void
     {
         if (!str_starts_with($event->getRequest()->getPathInfo(), '/api')) {
@@ -57,13 +62,20 @@ final class ApiExceptionListener
                 $exception->getMessage(),
             ),
             $exception instanceof HttpExceptionInterface => $this->httpProblem($exception),
-            default => $this->problem(
-                '/errors/server-error',
-                'Błąd serwera',
-                Response::HTTP_INTERNAL_SERVER_ERROR,
-                'Wystąpił nieoczekiwany błąd.',
-            ),
+            default => $this->unexpectedProblem($exception),
         };
+    }
+
+    private function unexpectedProblem(\Throwable $exception): JsonResponse
+    {
+        $this->logger->error('Nieoczekiwany błąd podczas obsługi żądania API.', ['exception' => $exception]);
+
+        return $this->problem(
+            '/errors/server-error',
+            'Błąd serwera',
+            Response::HTTP_INTERNAL_SERVER_ERROR,
+            'Wystąpił nieoczekiwany błąd.',
+        );
     }
 
     private function httpProblem(HttpExceptionInterface $exception): JsonResponse
