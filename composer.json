@@ -71,7 +71,7 @@
             "@php bin/console doctrine:migrations:migrate --env=test --no-interaction --allow-no-migration",
             "@php vendor/bin/phpunit"
         ],
-        "phpstan": "@php vendor/bin/phpstan analyse",
+        "phpstan": "@php vendor/bin/phpstan analyse --memory-limit=-1",
         "cs": "@php vendor/bin/php-cs-fixer fix",
         "cs:check": "@php vendor/bin/php-cs-fixer fix --dry-run --diff"
     },

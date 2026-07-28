@@ -48,7 +48,7 @@ jobs:
       - name: Static analysis
         run: |
           php bin/console cache:warmup --env=dev
-          vendor/bin/phpstan analyse --no-progress
+          vendor/bin/phpstan analyse --no-progress --memory-limit=-1
 
       - name: Run migrations
         run: php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration
