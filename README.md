@@ -124,6 +124,6 @@ docker compose exec app composer phpstan    # analiza statyczna, level 8
 docker compose exec app composer cs:check   # styl kodu, PSR-12 + @Symfony
 ```
 
-57 testów: funkcjonalne strzelają po HTTP w osobną bazę `db_test`, jednostkowe
+58 testów: funkcjonalne strzelają po HTTP w osobną bazę `db_test`, jednostkowe
 pokrywają walidację DTO, cykl życia wypożyczenia i mapowanie błędów na
 `problem+json`. Ten sam zestaw uruchamia się w GitHub Actions przy każdym pushu.
