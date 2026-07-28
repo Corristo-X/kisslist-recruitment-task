@@ -76,7 +76,7 @@ final class ApiExceptionListenerTest extends TestCase
 
         $response = $event->getResponse();
         self::assertSame(404, $response?->getStatusCode());
-        self::assertSame('application/problem+json', $response?->headers->get('Content-Type'));
+        self::assertSame('application/problem+json', $response->headers->get('Content-Type'));
 
         $payload = json_decode((string) $response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
         self::assertSame('/errors/not-found', $payload['type']);
@@ -91,7 +91,7 @@ final class ApiExceptionListenerTest extends TestCase
 
         $response = $event->getResponse();
         self::assertSame(405, $response?->getStatusCode());
-        self::assertSame('application/problem+json', $response?->headers->get('Content-Type'));
+        self::assertSame('application/problem+json', $response->headers->get('Content-Type'));
 
         $payload = json_decode((string) $response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
         self::assertSame('/errors/http', $payload['type']);

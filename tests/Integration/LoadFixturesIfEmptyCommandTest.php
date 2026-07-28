@@ -39,7 +39,8 @@ final class LoadFixturesIfEmptyCommandTest extends DatabaseTestCase
     // powoduje fatal error PHP ("Cannot make static method non static").
     private function runFixturesCommand(): void
     {
-        $application = new Application(self::$kernel);
+        $kernel = self::$kernel ?? throw new \LogicException('Kernel testowy nie został uruchomiony.');
+        $application = new Application($kernel);
         $tester = new CommandTester($application->find('app:load-fixtures-if-empty'));
         $tester->execute([]);
         $tester->assertCommandIsSuccessful();

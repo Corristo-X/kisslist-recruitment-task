@@ -3,17 +3,15 @@
 declare(strict_types=1);
 
 $finder = (new PhpCsFixer\Finder())
-    ->in(__DIR__)
-    ->exclude('var')
-    ->notPath([
-        'config/bundles.php',
-        'config/reference.php',
-    ])
-;
+    ->in([__DIR__.'/src', __DIR__.'/tests']);
 
 return (new PhpCsFixer\Config())
     ->setRules([
+        '@PSR12' => true,
         '@Symfony' => true,
+        'declare_strict_types' => true,
+        'ordered_imports' => ['sort_algorithm' => 'alpha'],
+        'no_unused_imports' => true,
     ])
-    ->setFinder($finder)
-;
+    ->setRiskyAllowed(true)
+    ->setFinder($finder);

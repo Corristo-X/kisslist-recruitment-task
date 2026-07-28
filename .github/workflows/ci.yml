@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: library_test
+          POSTGRES_USER: library
+          POSTGRES_PASSWORD: library
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U library -d library_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      APP_ENV: test
+      APP_SECRET: ci-secret
+      DATABASE_URL: "postgresql://library:library@127.0.0.1:5432/library_test?serverVersion=17&charset=utf8"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_pgsql, intl, zip
+          coverage: none
+
+      - name: Install dependencies
+        uses: ramsey/composer-install@v3
+
+      - name: Check code style
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff
+
+      - name: Static analysis
+        run: |
+          php bin/console cache:warmup --env=dev
+          vendor/bin/phpstan analyse --no-progress
+
+      - name: Run migrations
+        run: php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration
+
+      - name: Run tests
+        run: vendor/bin/phpunit

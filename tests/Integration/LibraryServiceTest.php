@@ -55,7 +55,7 @@ final class LibraryServiceTest extends DatabaseTestCase
         self::assertSame('998877', $book->getActiveLoan()?->getCardNumber());
         self::assertSame(
             '2026-07-28 12:00:00',
-            $book->getActiveLoan()?->getBorrowedAt()->format('Y-m-d H:i:s'),
+            $book->getActiveLoan()->getBorrowedAt()->format('Y-m-d H:i:s'),
         );
     }
 

@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Dto\BookResponse;
 use App\Dto\CreateBookRequest;
+use App\Entity\Book;
 use App\Service\LibraryService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -42,7 +43,7 @@ final class BookController extends AbstractController
     {
         return $this->json([
             'items' => array_map(
-                static fn ($book) => BookResponse::fromBook($book),
+                static fn (Book $book) => BookResponse::fromBook($book),
                 $this->library->listBooks(),
             ),
         ]);
