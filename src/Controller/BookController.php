@@ -8,6 +8,7 @@ use App\Dto\BookResponse;
 use App\Dto\CreateBookRequest;
 use App\Entity\Book;
 use App\Service\LibraryService;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,6 +23,9 @@ final class BookController extends AbstractController
     {
     }
 
+    #[OA\Response(response: 201, description: 'Książka dodana')]
+    #[OA\Response(response: 409, description: 'Numer seryjny już istnieje')]
+    #[OA\Response(response: 422, description: 'Błąd walidacji')]
     #[Route('', name: 'book_create', methods: ['POST'])]
     public function create(#[MapRequestPayload] CreateBookRequest $request): JsonResponse
     {
@@ -38,6 +42,7 @@ final class BookController extends AbstractController
         );
     }
 
+    #[OA\Response(response: 200, description: 'Lista wszystkich książek')]
     #[Route('', name: 'book_list', methods: ['GET'])]
     public function list(): JsonResponse
     {
@@ -49,12 +54,17 @@ final class BookController extends AbstractController
         ]);
     }
 
+    #[OA\Response(response: 200, description: 'Dane książki')]
+    #[OA\Response(response: 404, description: 'Książka nie istnieje')]
     #[Route('/{serial}', name: 'book_show', methods: ['GET'], requirements: ['serial' => '\d{6}'])]
     public function show(string $serial): JsonResponse
     {
         return $this->json(BookResponse::fromBook($this->library->getBook($serial)));
     }
 
+    #[OA\Response(response: 204, description: 'Książka usunięta')]
+    #[OA\Response(response: 404, description: 'Książka nie istnieje')]
+    #[OA\Response(response: 409, description: 'Książka jest wypożyczona')]
     #[Route('/{serial}', name: 'book_delete', methods: ['DELETE'], requirements: ['serial' => '\d{6}'])]
     public function delete(string $serial): JsonResponse
     {

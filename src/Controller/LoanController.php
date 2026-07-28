@@ -9,6 +9,7 @@ use App\Dto\BorrowBookRequest;
 use App\Dto\LoanResponse;
 use App\Entity\Loan;
 use App\Service\LibraryService;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
@@ -21,6 +22,10 @@ final class LoanController extends AbstractController
     {
     }
 
+    #[OA\Response(response: 200, description: 'Książka wypożyczona')]
+    #[OA\Response(response: 404, description: 'Książka nie istnieje')]
+    #[OA\Response(response: 409, description: 'Książka jest już wypożyczona')]
+    #[OA\Response(response: 422, description: 'Niepoprawny numer karty')]
     #[Route('/borrow', name: 'book_borrow', methods: ['POST'])]
     public function borrow(string $serial, #[MapRequestPayload] BorrowBookRequest $request): JsonResponse
     {
@@ -29,12 +34,17 @@ final class LoanController extends AbstractController
         ));
     }
 
+    #[OA\Response(response: 200, description: 'Zwrot przyjęty')]
+    #[OA\Response(response: 404, description: 'Książka nie istnieje')]
+    #[OA\Response(response: 409, description: 'Książka nie jest wypożyczona')]
     #[Route('/return', name: 'book_return', methods: ['POST'])]
     public function returnBook(string $serial): JsonResponse
     {
         return $this->json(BookResponse::fromBook($this->library->returnBook($serial)));
     }
 
+    #[OA\Response(response: 200, description: 'Historia wypożyczeń książki')]
+    #[OA\Response(response: 404, description: 'Książka nie istnieje')]
     #[Route('/loans', name: 'book_loans', methods: ['GET'])]
     public function history(string $serial): JsonResponse
     {

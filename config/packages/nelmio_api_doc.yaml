@@ -1,0 +1,9 @@
+nelmio_api_doc:
+    documentation:
+        info:
+            title: API systemu bibliotecznego
+            description: Śledzenie i aktualizacja stanu książek posiadanych przez bibliotekę.
+            version: 1.0.0
+    areas:
+        path_patterns:
+            - ^/api(?!/doc$|/doc\.json$)
