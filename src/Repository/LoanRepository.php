@@ -24,6 +24,7 @@ final class LoanRepository extends ServiceEntityRepository
             ->where('l.book = :book')
             ->setParameter('book', $book)
             ->orderBy('l.borrowedAt', 'DESC')
+            ->addOrderBy('l.id', 'DESC')
             ->getQuery()
             ->getResult();
     }
