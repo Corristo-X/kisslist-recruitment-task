@@ -9,6 +9,7 @@ services:
     environment:
       APP_ENV: dev
       COMPOSER_HOME: /tmp/composer
+      LOAD_FIXTURES: "1"
     volumes:
       - .:/app
     entrypoint: ["/app/docker/entrypoint.sh"]

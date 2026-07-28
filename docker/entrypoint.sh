@@ -22,4 +22,9 @@ done
 echo "[entrypoint] Migracje..."
 php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration
 
+if [ "${LOAD_FIXTURES:-0}" = "1" ]; then
+	echo "[entrypoint] Dane przykładowe (tylko gdy tabela book jest pusta)..."
+	php bin/console app:load-fixtures-if-empty
+fi
+
 exec "$@"
