@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM dunglas/frankenphp:latest AS base
+FROM dunglas/frankenphp:1.12-php8.5 AS base
 
 RUN install-php-extensions pdo_pgsql intl opcache zip
 
