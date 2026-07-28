@@ -86,17 +86,19 @@ final class ApiExceptionListenerTest extends TestCase
 
     public function testMapsMethodNotAllowedTo405WithPolishTitle(): void
     {
-        $event = $this->eventFor(new MethodNotAllowedHttpException(['GET'], 'Method Not Allowed'));
+        $event = $this->eventFor(new MethodNotAllowedHttpException(['GET', 'DELETE'], 'No route found for "PUT /api/books/100001": Method Not Allowed (Allow: GET, DELETE)'));
 
         (new ApiExceptionListener($this->createStub(LoggerInterface::class)))($event);
 
         $response = $event->getResponse();
         self::assertSame(405, $response?->getStatusCode());
         self::assertSame('application/problem+json', $response->headers->get('Content-Type'));
+        self::assertSame('GET, DELETE', $response->headers->get('Allow'));
 
         $payload = json_decode((string) $response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
         self::assertSame('/errors/http', $payload['type']);
         self::assertSame('Niedozwolona metoda HTTP', $payload['title']);
+        self::assertSame('Ta metoda HTTP nie jest dozwolona dla tego zasobu.', $payload['detail']);
     }
 
     public function testLogsUnexpectedExceptionAndReturnsUnchanged500(): void

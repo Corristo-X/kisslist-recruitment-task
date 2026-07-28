@@ -94,7 +94,19 @@ final class ApiExceptionListener
                 default => $status >= 500 ? 'Błąd serwera' : 'Błąd żądania',
             },
             $status,
-            $isNotFound ? 'Żądany zasób nie istnieje.' : $exception->getMessage(),
+            // $exception->getMessage() bywa po angielsku i potrafi echować cały URL żądania —
+            // API mówi po polsku i nie odsłania szczegółów wewnętrznego routingu.
+            match ($status) {
+                Response::HTTP_BAD_REQUEST => 'Żądanie zawiera nieprawidłowe dane.',
+                Response::HTTP_NOT_FOUND => 'Żądany zasób nie istnieje.',
+                Response::HTTP_METHOD_NOT_ALLOWED => 'Ta metoda HTTP nie jest dozwolona dla tego zasobu.',
+                Response::HTTP_UNSUPPORTED_MEDIA_TYPE => 'Serwer nie obsługuje podanego formatu danych.',
+                default => $status >= 500 ? 'Wystąpił błąd serwera.' : 'Wystąpił błąd żądania.',
+            },
+            [],
+            // HttpExceptionInterface::getHeaders() niesie np. Allow przy 405 (RFC 9110 §15.5.6) —
+            // bez tego klient nie dowie się, jakie metody są dozwolone.
+            $exception->getHeaders(),
         );
     }
 
@@ -123,14 +135,17 @@ final class ApiExceptionListener
         return $violations;
     }
 
-    /** @param array<string, mixed> $extra */
-    private function problem(string $type, string $title, int $status, ?string $detail = null, array $extra = []): JsonResponse
+    /**
+     * @param array<string, mixed>  $extra
+     * @param array<string, string> $headers
+     */
+    private function problem(string $type, string $title, int $status, ?string $detail = null, array $extra = [], array $headers = []): JsonResponse
     {
         $payload = ['type' => $type, 'title' => $title, 'status' => $status];
         if (null !== $detail) {
             $payload['detail'] = $detail;
         }
 
-        return new JsonResponse($payload + $extra, $status, ['Content-Type' => 'application/problem+json']);
+        return new JsonResponse($payload + $extra, $status, array_merge($headers, ['Content-Type' => 'application/problem+json']));
     }
 }
