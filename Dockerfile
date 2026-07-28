@@ -30,5 +30,10 @@ RUN composer dump-autoload --no-dev --optimize --classmap-authoritative \
  && php bin/console cache:warmup
 RUN chmod +x docker/entrypoint.sh
 
+# Render i inne platformy z no-new-privileges odmawiają uruchomienia binarki
+# z ustawionymi capabilities. Serwer i tak słucha na $PORT (>1024), więc
+# cap_net_bind_service jest zbędne.
+RUN setcap -r /usr/local/bin/frankenphp 2>/dev/null || true
+
 ENTRYPOINT ["/app/docker/entrypoint.sh"]
 CMD ["frankenphp", "run", "--config", "/app/docker/Caddyfile"]
